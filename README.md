@@ -87,6 +87,10 @@ Dynamic pricing pipeline/
 | Deployment | AWS ECS Fargate | Serverless containers |
 | Orchestration | Dagster | Pipeline scheduling |
 
+## Data Lineage (dbt)
+
+![dbt Lineage Graph](docs/images/dbt_lineage.png)
+
 ## Model Performance
 
 | Metric | Value |
