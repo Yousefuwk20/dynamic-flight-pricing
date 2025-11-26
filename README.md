@@ -89,7 +89,7 @@ Dynamic pricing pipeline/
 
 ## Data Lineage (dbt)
 
-![dbt Lineage Graph](docs/images/dbt_lineage.png)
+![dbt Lineage Graph](docs/images/Lineage_Graph.png)
 
 ## Model Performance
 
