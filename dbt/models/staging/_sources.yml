@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: raw
+    database: flight_pricing  
+    schema: raw
+    tables: 
+      - name: flights
+        description: "Raw flight ticket data from Expedia scraping"
+        quoting:
+          identifier: false
+        columns:
+          - name: legId
+            description: "Unique identifier for each flight ticket"
+            tests:
+              - unique
+              - not_null
+          - name: searchDate
+            description: "Date when ticket was scraped"
+          - name: flightDate
+            description: "Date of actual flight"

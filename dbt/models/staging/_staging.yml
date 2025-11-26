@@ -1,0 +1,123 @@
+version: 2
+
+models:
+  - name: staging_model
+    description: "Staging model for flight tickets with ML features engineered"
+    
+    columns:
+      - name: leg_id
+        description: "Primary key - unique flight ticket identifier"
+        tests:
+          - unique
+          - not_null
+      
+      - name: search_date
+        description: "Date ticket was found on Expedia"
+        tests:
+          - not_null
+      
+      - name: flight_date
+        description: "Date of the flight"
+        tests:
+          - not_null
+      
+      - name: days_until_flight
+        description: "Days between search and flight (advance purchase)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 365
+      
+      - name: starting_airport
+        description: "Origin airport IATA code"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ATL', 'DFW', 'DEN', 'ORD', 'LAX', 'CLT', 'MIA', 
+                       'JFK', 'EWR', 'SFO', 'DTW', 'BOS', 'PHL', 'LGA', 
+                       'IAD', 'OAK']
+      
+      - name: destination_airport
+        description: "Destination airport IATA code"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ATL', 'DFW', 'DEN', 'ORD', 'LAX', 'CLT', 'MIA', 
+                       'JFK', 'EWR', 'SFO', 'DTW', 'BOS', 'PHL', 'LGA', 
+                       'IAD', 'OAK']
+      
+      - name: total_fare
+        description: "Total ticket price including taxes (USD)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 20
+              max_value: 10000
+      
+      - name: seats_remaining
+        description: "Number of seats available at time of scraping"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      
+      - name: num_stops
+        description: "Number of stops/layovers (0 for nonstop)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 5
+      
+      - name: departure_hour
+        description: "Hour of departure (0-23)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 23
+      
+      - name: arrival_hour
+        description: "Hour of arrival (0-23)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 23
+      
+      - name: flight_weekday
+        description: "Day of week for flight (0=Mon, 6=Sun)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 6
+      
+      - name: flight_month
+        description: "Month of flight (1-12)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 12
+      
+      - name: seasonality_encoded
+        description: "Season encoding (1=Winter, 2=Spring, 3=Summer, 4=Fall)"
+        tests:
+          - accepted_values:
+              values: [1, 2, 3, 4]
+      
+      - name: cabin_category_encoded
+        description: "Cabin class (0=Coach, 1=Premium, 2=Business, 3=First)"
+        tests:
+          - accepted_values:
+              values: [0, 1, 2, 3]
+      
+      - name: passenger_type
+        description: "Passenger segment classification"
+        tests:
+          - accepted_values:
+              values: ['Economy', 'Standard', 'Flexible', 'Business']
+      
+      - name: is_weekend
+        description: "Boolean flag for weekend flights"
+        tests:
+          - accepted_values:
+              values: [0, 1]

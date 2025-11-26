@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Flight Pricing Pipeline - Technical Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0f172a;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--secondary);
+            padding: 2rem 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .nav-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .nav-header h2 {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .nav-header span {
+            color: var(--accent);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-links a {
+            display: block;
+            padding: 0.6rem 1.5rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            border-left-color: var(--accent);
+        }
+
+        .nav-section {
+            padding: 0.4rem 1.5rem;
+            color: var(--accent);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 1rem;
+        }
+
+        /* Main Content */
+        .main {
+            margin-left: 280px;
+            padding: 3rem 4rem;
+            max-width: 1100px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            padding: 3rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .hero-stat-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin: 2rem 0 1rem;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-light) 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0 1rem 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background: var(--secondary);
+            color: #fff;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: var(--bg-light);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* Architecture Diagram */
+        .arch-diagram {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arch-row {
+            display: flex;
+            justify-content: center;
+        }
+
+        .arch-box {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 140px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .arch-box.source {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #f59e0b;
+        }
+
+        .arch-box.bronze {
+            background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+            border-color: #d97706;
+        }
+
+        .arch-box.silver {
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            border-color: #6b7280;
+        }
+
+        .arch-box.gold {
+            background: linear-gradient(135deg, #fef9c3 0%, #fde047 100%);
+            border-color: #ca8a04;
+        }
+
+        .arch-box.ml {
+            background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+            border-color: var(--primary);
+        }
+
+        .arch-box.training {
+            background: linear-gradient(135deg, #dcfce7 0%, #86efac 100%);
+            border-color: var(--success);
+        }
+
+        .arch-box.api {
+            background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+            border-color: #6366f1;
+        }
+
+        .arch-box.deploy {
+            background: linear-gradient(135deg, #ffe4e6 0%, #fda4af 100%);
+            border-color: #f43f5e;
+        }
+
+        .arch-box span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .arch-label {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .arch-sublabel {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .arch-arrow-labeled {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .arrow-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+
+        .arrow-line {
+            width: 2px;
+            height: 25px;
+            background: var(--primary);
+            position: relative;
+        }
+
+        .arrow-line::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: -5px;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid var(--primary);
+        }
+
+        .arch-arrow {
+            width: 2px;
+            height: 30px;
+            background: var(--primary);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arch-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid var(--primary);
+        }
+
+        .snowflake-container {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .snowflake-header {
+            font-weight: 700;
+            color: #0369a1;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .medallion-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arch-connector {
+            width: 30px;
+            height: 2px;
+            background: var(--text-secondary);
+            position: relative;
+        }
+
+        .arch-connector::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: -4px;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 6px solid var(--text-secondary);
+        }
+
+        .arch-arrow-down {
+            width: 2px;
+            height: 20px;
+            background: var(--text-secondary);
+            position: relative;
+        }
+
+        .arch-arrow-down::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: -4px;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text-secondary);
+        }
+
+        /* Pipeline Diagram */
+        .pipeline-diagram {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .pipeline-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pipeline-row.reverse {
+            margin-bottom: 0;
+            justify-content: flex-end;
+            padding-right: 2rem;
+        }
+
+        .pipeline-step {
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            gap: 0.75rem;
+            min-width: 180px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .pipeline-step.step-1 { border-color: var(--primary); }
+        .pipeline-step.step-2 { border-color: #0ea5e9; }
+        .pipeline-step.step-3 { border-color: var(--success); }
+        .pipeline-step.step-4 { border-color: #f59e0b; }
+        .pipeline-step.step-5 { border-color: #8b5cf6; }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .step-1 .step-number { background: var(--primary); }
+        .step-2 .step-number { background: #0ea5e9; }
+        .step-3 .step-number { background: var(--success); }
+        .step-4 .step-number { background: #f59e0b; }
+        .step-5 .step-number { background: #8b5cf6; }
+
+        .step-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-content strong {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+
+        .step-content span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .pipeline-arrow {
+            width: 30px;
+            height: 2px;
+            background: var(--text-secondary);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .pipeline-arrow::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: -4px;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 6px solid var(--text-secondary);
+        }
+
+        .pipeline-arrow.reverse::after {
+            right: auto;
+            left: -4px;
+            border-left: none;
+            border-right: 6px solid var(--text-secondary);
+        }
+
+        .pipeline-connector-vertical {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: calc(2rem + 90px);
+            margin: -0.5rem 0;
+        }
+
+        .pipeline-connector-vertical::before {
+            content: '';
+            width: 2px;
+            height: 40px;
+            background: var(--text-secondary);
+            position: relative;
+        }
+
+        .pipeline-connector-vertical::after {
+            content: '';
+            position: absolute;
+            margin-top: 34px;
+            margin-right: calc(2rem + 86px);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text-secondary);
+        }
+
+        /* Visualization Grid */
+        .viz-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .viz-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .viz-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .viz-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .viz-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .viz-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tags/Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        /* Tech Stack Grid */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .tech-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tech-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .tech-name {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .tech-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* KPI List */
+        .kpi-list {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .kpi-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .kpi-number {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .kpi-content strong {
+            color: var(--secondary);
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .nav {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+                padding: 2rem;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Section anchors */
+        section[id] {
+            scroll-margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-header">
+            <span>Documentation</span>
+            <h2>Flight Pricing Pipeline</h2>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-section">Overview</li>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#problem">Problem Statement</a></li>
+            <li><a href="#solution">Our Solution</a></li>
+            
+            <li class="nav-section">Data</li>
+            <li><a href="#dataset">Dataset</a></li>
+            <li><a href="#business">Business Overview</a></li>
+            <li><a href="#tech-stack">Technology Stack</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            
+            <li class="nav-section">Implementation</li>
+            <li><a href="#ingestion">Data Ingestion</a></li>
+            <li><a href="#transformations">Transformations</a></li>
+            <li><a href="#ml-pipeline">ML Pipeline</a></li>
+            
+            <li class="nav-section">Operations</li>
+            <li><a href="#deployment">Deployment</a></li>
+            <li><a href="#orchestration">Orchestration</a></li>
+            <li><a href="#analytics">Analytics & KPIs</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Dynamic Flight Pricing Pipeline</h1>
+            <p>An end-to-end Data Engineering and ML solution built on the Modern Data Stack for enterprise-scale airline revenue optimization.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">82M</div>
+                    <div class="hero-stat-label">Flight Records</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">91%</div>
+                    <div class="hero-stat-label">R² Score</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">$33.97</div>
+                    <div class="hero-stat-label">MAE</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">&lt;50ms</div>
+                    <div class="hero-stat-label">Latency</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>Dynamic pricing is the backbone of modern airline revenue management, yet legacy systems struggle to process massive historical datasets efficiently. Traditional approaches often rely on static rules or sampled data, leading to suboptimal pricing strategies, revenue leakage, and slow reaction to market shifts.</p>
+            
+            <p>Our project proposes an end-to-end Data Engineering and ML solution built on the Modern Data Stack (Snowflake, dbt, and Dagster). The system integrates four core components:</p>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Scalable Data Warehouse</h4>
+                    <p>Utilizing Snowflake to ingest and store over 82 million flight records, organized into a strict Medallion Architecture (Bronze/Silver/Gold).</p>
+                </div>
+                <div class="card">
+                    <h4>Robust ELT Pipeline</h4>
+                    <p>Leveraging dbt to orchestrate complex transformations, enforce data quality tests, and build a high-performance Star Schema.</p>
+                </div>
+                <div class="card">
+                    <h4>Memory-Optimized Engineering</h4>
+                    <p>Implementing Polars and Apache Arrow for zero-copy data transfer, solving critical RAM bottlenecks.</p>
+                </div>
+                <div class="card">
+                    <h4>Advanced Predictive Modeling</h4>
+                    <p>XGBoost trained on granular features to predict flight prices with 91% accuracy (R²).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem Statement -->
+        <section id="problem">
+            <h2>Problem Statement</h2>
+            <p>Airlines employ dynamic pricing strategies where ticket prices fluctuate based on numerous factors. Predicting these prices accurately is challenging due to:</p>
+            <ul>
+                <li><strong>Complex interactions</strong> between features such as demand elasticity, competitive pricing, and capacity management</li>
+                <li><strong>Temporal dependencies</strong> where prices change based on days until departure and seasonal patterns</li>
+                <li><strong>Route-specific dynamics</strong> where origin-destination pairs exhibit different pricing behaviors</li>
+                <li><strong>Inventory effects</strong> where seat availability triggers algorithmic price adjustments</li>
+                <li><strong>Categorical variables</strong> including airline carrier, fare class, and airport characteristics</li>
+            </ul>
+            <div class="highlight-box">
+                <p><strong>Key Insight:</strong> Traditional rule-based pricing models struggle to capture these non-linear relationships. A machine learning approach can learn these patterns from historical data and provide accurate predictions for new flight queries.</p>
+            </div>
+        </section>
+
+        <!-- Our Solution -->
+        <section id="solution">
+            <h2>Our Solution</h2>
+            
+            <h3>Architecture Pattern: Medallion Architecture</h3>
+            <p>The pipeline organizes data into progressive quality layers:</p>
+            <ol>
+                <li><strong>Bronze Layer (RAW)</strong> - Immutable landing zone for source data</li>
+                <li><strong>Silver Layer (STAGING)</strong> - Cleaned, validated, and standardized data</li>
+                <li><strong>Gold Layer (ANALYTICS)</strong> - Business-ready dimensional model</li>
+                <li><strong>ML Layer</strong> - Feature-engineered table optimized for model training</li>
+            </ol>
+
+            <h3>Data Modeling: Star Schema</h3>
+            <p>The analytics layer implements a star schema with:</p>
+            <ul>
+                <li><strong>1 Fact Table:</strong> <code>FACT_FLIGHTS</code> containing pricing measures and flight metrics</li>
+                <li><strong>4 Dimension Tables:</strong>
+                    <ul>
+                        <li><code>DIM_DATE</code> - Calendar attributes with holiday indicators</li>
+                        <li><code>DIM_AIRLINES</code> - Carrier information</li>
+                        <li><code>DIM_AIRPORTS</code> - Airport locations (role-playing dimension)</li>
+                        <li><code>DIM_ROUTES</code> - Origin-destination pairs</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>Model Performance Metrics</h3>
+            <div class="card-grid">
+                <div class="metric-card">
+                    <div class="metric-value">91%</div>
+                    <div class="metric-label">R² Score</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$51.93</div>
+                    <div class="metric-label">RMSE</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$33.97</div>
+                    <div class="metric-label">MAE</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dataset -->
+        <section id="dataset">
+            <h2>Dataset</h2>
+            <p>The dataset consists of historical flight search results with pricing information collected from major airlines operating in the United States.</p>
+            
+            <div class="card">
+                <h4>Data Source</h4>
+                <ul>
+                    <li><strong>Origin:</strong> Kaggle → AWS S3 bucket (<code>s3://airlinesic/raw_data/</code>)</li>
+                    <li><strong>Format:</strong> Parquet files (columnar, compressed)</li>
+                    <li><strong>Volume:</strong> 82 million records</li>
+                </ul>
+            </div>
+
+            <h3>Schema Overview</h3>
+            <p>The raw dataset contains <strong>27 columns</strong> across several categories:</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Fields</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Identifiers</td>
+                        <td><code>legId</code>, <code>segmentsAirlineCode</code>, <code>fareBasisCode</code></td>
+                    </tr>
+                    <tr>
+                        <td>Temporal</td>
+                        <td><code>searchDate</code>, <code>flightDate</code>, <code>travelDuration</code></td>
+                    </tr>
+                    <tr>
+                        <td>Geographic</td>
+                        <td><code>startingAirport</code>, <code>destinationAirport</code></td>
+                    </tr>
+                    <tr>
+                        <td>Flight Characteristics</td>
+                        <td><code>isBasicEconomy</code>, <code>isRefundable</code>, <code>isNonStop</code></td>
+                    </tr>
+                    <tr>
+                        <td>Pricing</td>
+                        <td><code>totalFare</code>, <code>baseFare</code></td>
+                    </tr>
+                    <tr>
+                        <td>Operational</td>
+                        <td><code>seatsRemaining</code>, <code>totalTravelDistance</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Business Overview -->
+        <section id="business">
+            <h2>Business Overview</h2>
+            
+            <h3>Use Cases</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Price Prediction Service</h4>
+                    <p>Provides real-time fare estimates for flight search queries. Enables comparison with actual market prices.</p>
+                </div>
+                <div class="card">
+                    <h4>Demand Forecasting</h4>
+                    <p>Analyzes historical pricing patterns to understand demand elasticity. Identifies high-value booking windows.</p>
+                </div>
+                <div class="card">
+                    <h4>Customer Analytics</h4>
+                    <p>Segments customers by price sensitivity. Optimizes fare display and recommendations.</p>
+                </div>
+            </div>
+
+            <h3>Business Value</h3>
+            <ul>
+                <li><strong>Revenue Optimization:</strong> Improves pricing decisions by 4-5% through accurate demand prediction</li>
+                <li><strong>Operational Efficiency:</strong> Automates pricing analysis reducing manual effort by 80%</li>
+                <li><strong>Market Intelligence:</strong> Provides real-time insights into competitor pricing strategies</li>
+                <li><strong>Customer Experience:</strong> Enables personalized pricing and recommendations</li>
+            </ul>
+        </section>
+
+        <!-- Technology Stack -->
+        <section id="tech-stack">
+            <h2>Technology Stack</h2>
+            
+            <h3>Data Infrastructure</h3>
+            <table>
+                <thead>
+                    <tr><th>Component</th><th>Technology</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Data Warehouse</td><td><span class="badge">Snowflake</span></td><td>Centralized storage, compute, and SQL transformations</td></tr>
+                    <tr><td>Object Storage</td><td><span class="badge">AWS S3</span></td><td>Raw data landing zone and model artifact storage</td></tr>
+                    <tr><td>File Format</td><td><span class="badge">Parquet</span></td><td>Columnar storage with compression</td></tr>
+                    <tr><td>Data Modeling</td><td><span class="badge">dbt</span></td><td>SQL-based transformations and documentation</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Machine Learning</h3>
+            <table>
+                <thead>
+                    <tr><th>Component</th><th>Technology</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>ML Framework</td><td><span class="badge">XGBoost</span></td><td>Gradient boosting for regression</td></tr>
+                    <tr><td>Data Processing</td><td><span class="badge">Polars</span></td><td>Memory-efficient DataFrame operations</td></tr>
+                    <tr><td>Experiment Tracking</td><td><span class="badge">MLflow</span></td><td>Metrics logging and model versioning</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Infrastructure & Deployment</h3>
+            <table>
+                <thead>
+                    <tr><th>Component</th><th>Technology</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Web Framework</td><td><span class="badge">FastAPI</span></td><td>High-performance REST API</td></tr>
+                    <tr><td>Containerization</td><td><span class="badge">Docker</span></td><td>Application packaging</td></tr>
+                    <tr><td>Container Orchestration</td><td><span class="badge">AWS ECS Fargate</span></td><td>Serverless container hosting</td></tr>
+                    <tr><td>Workflow Orchestration</td><td><span class="badge">Dagster</span></td><td>Asset-based pipeline scheduling</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Architecture -->
+        <section id="architecture">
+            <h2>Architecture Diagram</h2>
+            <div class="arch-diagram">
+                <!-- Source -->
+                <div class="arch-row">
+                    <div class="arch-box source">
+                        <div class="arch-label">AWS S3</div>
+                        <div class="arch-sublabel">Raw Parquet Files</div>
+                    </div>
+                </div>
+                <div class="arch-arrow-labeled">
+                    <span class="arrow-label">COPY INTO</span>
+                    <div class="arrow-line"></div>
+                </div>
+                
+                <!-- Snowflake Container -->
+                <div class="snowflake-container">
+                    <div class="snowflake-header">SNOWFLAKE</div>
+                    <div class="medallion-row">
+                        <div class="arch-box bronze">RAW<span>Bronze</span></div>
+                        <div class="arch-connector"></div>
+                        <div class="arch-box silver">STAGING<span>Silver</span></div>
+                        <div class="arch-connector"></div>
+                        <div class="arch-box gold">ANALYTICS<span>Gold</span></div>
+                    </div>
+                    <div class="arch-arrow-down"></div>
+                    <div class="arch-row">
+                        <div class="arch-box ml">ML FEATURES</div>
+                    </div>
+                </div>
+                
+                <div class="arch-arrow"></div>
+                
+                <!-- Training -->
+                <div class="arch-row">
+                    <div class="arch-box training">
+                        <div class="arch-label">Python Training</div>
+                        <div class="arch-sublabel">XGBoost + MLflow</div>
+                    </div>
+                </div>
+                
+                <div class="arch-arrow"></div>
+                
+                <!-- API -->
+                <div class="arch-row">
+                    <div class="arch-box api">
+                        <div class="arch-label">FastAPI App</div>
+                        <div class="arch-sublabel">Docker Image</div>
+                    </div>
+                </div>
+                
+                <div class="arch-arrow"></div>
+                
+                <!-- Deployment -->
+                <div class="arch-row">
+                    <div class="arch-box deploy">
+                        <div class="arch-label">AWS ECS Fargate</div>
+                        <div class="arch-sublabel">+ Application Load Balancer</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Ingestion -->
+        <section id="ingestion">
+            <h2>Implementation: Data Ingestion</h2>
+            <p>The ingestion process loads raw flight data from AWS S3 into Snowflake's RAW schema using native cloud integration.</p>
+            
+            <h3>Storage Integration</h3>
+            <pre><code>CREATE STORAGE INTEGRATION s3_integration
+    TYPE = EXTERNAL_STAGE
+    STORAGE_PROVIDER = 'S3'
+    ENABLED = TRUE
+    STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::ACCOUNT:role/snowflake-access-role'
+    STORAGE_ALLOWED_LOCATIONS = ('s3://airlines_sic_v2/');</code></pre>
+
+            <h3>External Stage</h3>
+            <pre><code>CREATE STAGE flight_stage
+    STORAGE_INTEGRATION = s3_integration
+    URL = 's3://airlines_sic_v2/raw_data/'
+    FILE_FORMAT = (TYPE = 'PARQUET');</code></pre>
+
+            <h3>Schema Inference and Table Creation</h3>
+            <pre><code>CREATE TABLE raw.flights USING TEMPLATE (
+    SELECT ARRAY_AGG(OBJECT_CONSTRUCT(*))
+    FROM TABLE(
+        INFER_SCHEMA(
+            LOCATION => '@flight_stage',
+            FILE_FORMAT => 'parquet_format'
+        )
+    )
+);</code></pre>
+
+            <h3>Data Loading</h3>
+            <pre><code>COPY INTO raw.flights
+FROM @flight_stage
+FILE_FORMAT = parquet_format
+MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE;</code></pre>
+
+            <div class="highlight-box">
+                <p><strong>Data Volume:</strong> The complete dataset contains approximately 82 million records. For model training, a 30% sample (~27-28 million records) was used due to computational constraints.</p>
+            </div>
+        </section>
+
+        <!-- Transformations -->
+        <section id="transformations">
+            <h2>Implementation: Data Transformations</h2>
+            <p>The transformation pipeline implements the medallion architecture, progressively refining data through Bronze (RAW), Silver (STAGING), Gold (ANALYTICS), and ML layers.</p>
+            
+            <h3>Staging Layer (Bronze to Silver)</h3>
+            <div class="card">
+                <h4>Data Cleaning</h4>
+                <ul>
+                    <li>Null handling with <code>COALESCE</code> for boolean flags</li>
+                    <li>Trimming whitespace from string columns</li>
+                    <li>Filtering invalid records (null identifiers, invalid dates)</li>
+                </ul>
+            </div>
+
+            <h4>Duration Parsing</h4>
+            <pre><code>CASE 
+    WHEN travelDuration LIKE 'PT%H%M'
+    THEN CAST(SPLIT_PART(SPLIT_PART(travelDuration, 'H', 1), 'PT', 2) AS INTEGER) * 60 +
+         CAST(SPLIT_PART(SPLIT_PART(travelDuration, 'M', 1), 'H', 2) AS INTEGER)
+    WHEN travelDuration LIKE 'PT%H'
+    THEN CAST(SPLIT_PART(travelDuration, 'H', 1) AS INTEGER) * 60
+    ELSE NULL
+END AS travel_duration_minutes</code></pre>
+
+            <h3>Analytics Layer (Silver to Gold)</h3>
+            <h4>Dimension Tables</h4>
+            <table>
+                <thead>
+                    <tr><th>Table</th><th>Description</th><th>Key Fields</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>DIM_DATE</code></td><td>Calendar attributes with holiday indicators</td><td>date_key, is_weekend, is_holiday</td></tr>
+                    <tr><td><code>DIM_AIRLINES</code></td><td>Carrier information</td><td>airline_code, airline_name</td></tr>
+                    <tr><td><code>DIM_AIRPORTS</code></td><td>Airport locations (role-playing)</td><td>airport_code, city, state</td></tr>
+                    <tr><td><code>DIM_ROUTES</code></td><td>Origin-destination pairs</td><td>route_key, distance_miles</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Fact Table: FACT_FLIGHT_PRICES</h4>
+            <p>Contains granular flight pricing observations with foreign keys to all dimensions.</p>
+            <ul>
+                <li><strong>Pricing Measures:</strong> total_fare, base_fare, taxes_and_fees, fare_per_mile</li>
+                <li><strong>Operational Metrics:</strong> seats_remaining, days_until_flight, travel_duration_minutes</li>
+                <li><strong>Boolean Flags:</strong> is_basic_economy, is_refundable, is_non_stop</li>
+            </ul>
+        </section>
+
+        <!-- ML Pipeline -->
+        <section id="ml-pipeline">
+            <h2>Implementation: Machine Learning Pipeline</h2>
+            <p>Training was performed on AWS SageMaker using the <code>ml.r6id.2xlarge</code> instance (64GB RAM, 8 vCPUs).</p>
+            
+            <h3>Feature Engineering</h3>
+            <h4>Fare Basis Code Parsing</h4>
+            <p>The <code>fare_basis_code</code> field is parsed into interpretable features:</p>
+            <table>
+                <thead>
+                    <tr><th>Feature</th><th>Extraction Logic</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>cabin_category</code></td><td>First letter: F/A=First, J/C/D=Business, Y/B/M=Economy</td></tr>
+                    <tr><td><code>fare_rule_number</code></td><td>Numeric sequence extraction via regex</td></tr>
+                    <tr><td><code>passenger_type</code></td><td>CH/CNN=Child, IN/INF=Infant, else Adult</td></tr>
+                    <tr><td><code>seasonality_proxy</code></td><td>Ends with H=High, L=Low, else Standard</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Outlier Detection (IQR Method)</h4>
+            <pre><code>Q1 = 25th percentile of total_fare
+Q3 = 75th percentile of total_fare
+IQR = Q3 - Q1
+Upper Bound = Q3 + (2.5 × IQR)
+Lower Bound = Q1 - (2.5 × IQR)</code></pre>
+
+            <h3>Final Feature Set (21 Features)</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Numeric (9)</h4>
+                    <p>days_until_flight, seats_remaining, total_travel_distance, travel_duration_minutes, num_segments, flight_year, flight_month, flight_day_of_week, fare_rule_number</p>
+                </div>
+                <div class="card">
+                    <h4>Categorical (6)</h4>
+                    <p>airline_code, origin_city, dest_city, cabin_category, passenger_type, seasonality_proxy</p>
+                </div>
+                <div class="card">
+                    <h4>Binary (8)</h4>
+                    <p>is_weekend, is_holiday, is_basic_economy, is_non_stop, is_refundable, has_numeric_rule, is_night_fare_proxy, is_weekend_fare_proxy</p>
+                </div>
+            </div>
+
+            <h3>XGBoost Configuration</h3>
+            <table>
+                <thead>
+                    <tr><th>Parameter</th><th>Value</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>n_estimators</td><td>1500</td><td>Number of boosting rounds</td></tr>
+                    <tr><td>learning_rate</td><td>0.1</td><td>Step size shrinkage</td></tr>
+                    <tr><td>max_depth</td><td>10</td><td>Maximum tree depth</td></tr>
+                    <tr><td>subsample</td><td>0.8</td><td>Row sampling ratio</td></tr>
+                    <tr><td>colsample_bytree</td><td>0.8</td><td>Column sampling ratio</td></tr>
+                    <tr><td>early_stopping_rounds</td><td>50</td><td>Early stopping patience</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Model Evaluation</h3>
+            <div class="card-grid">
+                <div class="metric-card">
+                    <div class="metric-value">91%</div>
+                    <div class="metric-label">R² Score<br><small>Explains 91% of price variance</small></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$51.93</div>
+                    <div class="metric-label">RMSE<br><small>Root mean squared error</small></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$33.97</div>
+                    <div class="metric-label">MAE<br><small>Mean absolute error</small></div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p><strong>Training Time:</strong> Approximately 70 minutes on AWS SageMaker ml.r6id.2xlarge instance</p>
+            </div>
+        </section>
+
+        <!-- Deployment -->
+        <section id="deployment">
+            <h2>Deployment</h2>
+            <p>The trained XGBoost model is deployed as a REST API on AWS ECS using Docker and Fargate serverless compute.</p>
+            
+            <h3>Infrastructure</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>AWS Stack</h4>
+                    <ul>
+                        <li><strong>ECS Cluster:</strong> flight-pricing-cluster (Fargate, us-east-1)</li>
+                        <li><strong>Service:</strong> 1 task (1 vCPU, 2GB RAM)</li>
+                        <li><strong>Load Balancer:</strong> Application Load Balancer</li>
+                        <li><strong>Registry:</strong> ECR repository</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Container</h4>
+                    <ul>
+                        <li><strong>Base Image:</strong> Python 3.9</li>
+                        <li><strong>Contents:</strong> FastAPI app, XGBoost model (140MB)</li>
+                        <li><strong>Port:</strong> 8000</li>
+                        <li><strong>Startup:</strong> ~15-20 seconds</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>API Endpoints</h3>
+            <table>
+                <thead>
+                    <tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>/health</code></td><td>GET</td><td>Model status and readiness</td></tr>
+                    <tr><td><code>/predict</code></td><td>POST</td><td>Flight price prediction with dynamic adjustments</td></tr>
+                    <tr><td><code>/predict/batch</code></td><td>POST</td><td>Multiple flight predictions</td></tr>
+                    <tr><td><code>/encoders</code></td><td>GET</td><td>Available categories for dropdowns</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Deployment Process</h3>
+            <p>Automated via PowerShell script (<code>deploy.ps1</code>):</p>
+            <ol>
+                <li>Build Docker image</li>
+                <li>Test locally on port 8001</li>
+                <li>Authenticate to ECR</li>
+                <li>Push image to registry</li>
+                <li>Stop old ECS service</li>
+                <li>Register new task definition</li>
+                <li>Deploy new service</li>
+                <li>Wait for stabilization</li>
+            </ol>
+            <p><strong>Execution Time:</strong> 5-7 minutes</p>
+        </section>
+
+        <!-- Orchestration -->
+        <section id="orchestration">
+            <h2>Orchestration</h2>
+            <p>A simulation was built using <strong>Dagster</strong> with asset-based orchestration and <strong>MLflow</strong> for experiment tracking.</p>
+            
+            <h3>Pipeline Flow</h3>
+            <div class="pipeline-diagram">
+                <div class="pipeline-row">
+                    <div class="pipeline-step step-1">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>Generate Demo Data</strong>
+                            <span>500 rows</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-arrow"></div>
+                    <div class="pipeline-step step-2">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>Ingest to Snowflake</strong>
+                            <span>DEMO_RAW schema</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-arrow"></div>
+                    <div class="pipeline-step step-3">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>Transform Data</strong>
+                            <span>Staging/Analytics/ML</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="pipeline-connector-vertical"></div>
+                <div class="pipeline-row reverse">
+                    <div class="pipeline-step step-5">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <strong>Batch Predictions</strong>
+                            <span>Score 100 flights</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-arrow reverse"></div>
+                    <div class="pipeline-step step-4">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <strong>Train Demo Model</strong>
+                            <span>XGBoost</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Dagster Assets</h3>
+            <div class="kpi-list">
+                <div class="kpi-item">
+                    <div class="kpi-number">1</div>
+                    <div class="kpi-content"><strong>generate_demo_data</strong> - Generates 500 synthetic flight records</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-number">2</div>
+                    <div class="kpi-content"><strong>ingest_to_snowflake</strong> - Loads data into DEMO_RAW.DEMO_FLIGHTS</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-number">3</div>
+                    <div class="kpi-content"><strong>transform_data</strong> - Staging → Analytics → ML layers</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-number">4</div>
+                    <div class="kpi-content"><strong>train_demo_model</strong> - XGBoost training with MLflow tracking</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-number">5</div>
+                    <div class="kpi-content"><strong>batch_predictions</strong> - Scores 100 flights and generates report</div>
+                </div>
+            </div>
+
+            <h3>MLflow Integration</h3>
+            <ul>
+                <li><strong>Parameters:</strong> n_estimators, max_depth, learning_rate, subsample</li>
+                <li><strong>Metrics:</strong> R², RMSE, MAE, MAPE</li>
+                <li><strong>Artifacts:</strong> Model file, label encoders</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p><strong>Isolation:</strong> All tables prefixed with <code>DEMO_*</code> to separate simulation from production data.</p>
+            </div>
+        </section>
+
+        <!-- Analytics -->
+        <section id="analytics">
+            <h2>Analytics & Visualization</h2>
+            <p>This section outlines the analytics KPIs that translate model outputs into actionable business insights.</p>
+            
+            <h3>Why It Matters</h3>
+            <ul>
+                <li>Improves revenue management through demand, inventory, and booking-window analysis</li>
+                <li>Benchmarks competitor behavior across airlines and routes</li>
+                <li>Enhances customer experience via better price-to-value recommendations</li>
+                <li>Reveals booking patterns to optimize dynamic pricing</li>
+            </ul>
+
+            <h3>KPI Framework</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Pricing Optimization</h4>
+                    <p>Forecast revenue, understand fare trends, track competitive pricing</p>
+                </div>
+                <div class="card">
+                    <h4>Operational Efficiency</h4>
+                    <p>Duration, non-stop vs connections, distance, seat inventory</p>
+                </div>
+                <div class="card">
+                    <h4>Market & Customer Insights</h4>
+                    <p>Booking behavior, demand seasonality, preferences</p>
+                </div>
+            </div>
+
+            <h3>Dashboard Visualizations</h3>
+            
+            <div class="viz-grid">
+                <div class="viz-card">
+                    <h4>Average Fare by Route</h4>
+                    <p>Identify high-value routes</p>
+                    <img src="images/images/avg fare per route.png" alt="Average Fare per Route">
+                </div>
+                <div class="viz-card">
+                    <h4>Price by Airline</h4>
+                    <p>Premium vs budget carriers</p>
+                    <img src="images/images/avg fare per airline.png" alt="Average Fare per Airline">
+                </div>
+            </div>
+
+            <div class="viz-grid">
+                <div class="viz-card">
+                    <h4>Price Trend vs Booking Window</h4>
+                    <p>Demand dynamics over booking horizon</p>
+                    <img src="images/images/price trend vs booking window.png" alt="Price Trend vs Booking Window">
+                </div>
+                <div class="viz-card">
+                    <h4>Monthly Fare Trend</h4>
+                    <p>Track pricing changes over time</p>
+                    <img src="images/images/monthly avg fare.png" alt="Monthly Average Fare">
+                </div>
+            </div>
+
+            <div class="viz-grid">
+                <div class="viz-card">
+                    <h4>Seats Remaining vs Fare</h4>
+                    <p>Demand pressure analysis</p>
+                    <img src="images/images/seats remaining vs fare.png" alt="Seats Remaining vs Fare">
+                </div>
+                <div class="viz-card">
+                    <h4>Non-Stop vs Connecting Flights</h4>
+                    <p>Customer preference distribution</p>
+                    <img src="images/images/non stop vs connected flights.png" alt="Non-Stop vs Connected Flights">
+                </div>
+            </div>
+
+            <div class="viz-grid">
+                <div class="viz-card">
+                    <h4>Airline Market Share</h4>
+                    <p>Competitive landscape</p>
+                    <img src="images/images/market share per airline.png" alt="Market Share per Airline">
+                </div>
+                <div class="viz-card">
+                    <h4>Demand Seasonality</h4>
+                    <p>Monthly booking patterns</p>
+                    <img src="images/images/monthly seasonality.png" alt="Monthly Seasonality">
+                </div>
+            </div>
+
+            <h3>Distribution Analysis</h3>
+            <div class="viz-grid">
+                <div class="viz-card">
+                    <h4>Fare Distribution</h4>
+                    <p>Price range histogram</p>
+                    <img src="images/images/fare distrubution histogram.png" alt="Fare Distribution Histogram">
+                </div>
+                <div class="viz-card">
+                    <h4>Duration Distribution</h4>
+                    <p>Flight duration patterns</p>
+                    <img src="images/images/duration distrbution per minutes.png" alt="Duration Distribution">
+                </div>
+            </div>
+
+            <div class="viz-grid">
+                <div class="viz-card">
+                    <h4>Remaining Seats Distribution</h4>
+                    <p>Inventory availability patterns</p>
+                    <img src="images/images/reamining seats distribution histogram.png" alt="Remaining Seats Distribution">
+                </div>
+                <div class="viz-card">
+                    <h4>Fare vs Remaining Seats</h4>
+                    <p>Price-inventory correlation</p>
+                    <img src="images/images/fare vs remeaning seats.png" alt="Fare vs Remaining Seats">
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>This project successfully demonstrates an enterprise-grade flight pricing prediction system built on modern data engineering principles and scalable infrastructure.</p>
+            
+            <h3>Key Achievements</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Data Engineering</h4>
+                    <ul>
+                        <li>Ingested 82 million flight records via Snowflake S3 integration</li>
+                        <li>Implemented medallion architecture (Bronze/Silver/Gold/ML)</li>
+                        <li>Built star schema with role-playing dimensions</li>
+                        <li>Memory-efficient processing with Polars and Apache Arrow</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Machine Learning</h4>
+                    <ul>
+                        <li>91% R² score with $33.97 MAE</li>
+                        <li>Parsed fare basis codes into 7 features</li>
+                        <li>IQR-based outlier detection (3% reduction)</li>
+                        <li>70-minute training on SageMaker ml.r6id.2xlarge</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Production Deployment</h4>
+                    <ul>
+                        <li>FastAPI with &lt;50ms latency</li>
+                        <li>AWS ECS Fargate with auto-scaling</li>
+                        <li>5 dynamic pricing factors</li>
+                        <li>Automated deployment scripts</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Orchestration</h4>
+                    <ul>
+                        <li>Dagster asset-based orchestration</li>
+                        <li>MLflow experiment tracking</li>
+                        <li>Weekly automated retraining</li>
+                        <li>Isolated demo environments</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Business Value Delivered</h3>
+            <table>
+                <tbody>
+                    <tr><td><strong>Accuracy</strong></td><td>91% variance explained enables confident pricing recommendations</td></tr>
+                    <tr><td><strong>Speed</strong></td><td>Real-time API responses support interactive booking experiences</td></tr>
+                    <tr><td><strong>Cost</strong></td><td>Serverless infrastructure scales with demand, eliminating idle waste</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Dynamic Flight Pricing Pipeline</strong> | Technical Documentation v1.0</p>
+            <p>Last Updated: November 26, 2025</p>
+        </div>
+    </main>
+
+    <script>
+        // Highlight active nav link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
