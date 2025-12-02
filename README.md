@@ -229,55 +229,10 @@ Cleaned and validated flight data with derived fields:
 | `state` | VARCHAR | State/region |
 
 #### fact_flight_prices (Fact Table)
-| Column | Type | Description |
-|--------|------|-------------|
-| `route_key` | VARCHAR | FK to dim_routes |
-| `date_key` | INTEGER | FK to dim_date |
-| `airline_key` | VARCHAR | FK to dim_airlines |
-| `origin_airport_key` | VARCHAR | FK to dim_airports (origin) |
-| `dest_airport_key` | VARCHAR | FK to dim_airports (destination) |
-| `leg_id` | VARCHAR | Natural key |
-| `search_date` | DATE | When price was captured |
-| `flight_date` | DATE | Departure date |
-| `primary_cabin` | VARCHAR | Cabin class |
-| `fare_basis_code` | VARCHAR | Fare class code |
-| `total_fare` | DECIMAL | Total price |
-| `base_fare` | DECIMAL | Base price |
-| `taxes_and_fees` | DECIMAL | Tax amount |
-| `fare_per_mile` | DECIMAL | Price efficiency metric |
-| `seats_remaining` | INTEGER | Inventory level |
-| `days_until_flight` | INTEGER | Booking window |
-| `total_travel_distance` | DECIMAL | Flight distance |
-| `travel_duration_minutes` | INTEGER | Flight time |
-| `num_segments` | INTEGER | Connection count |
-| `is_basic_economy` | BOOLEAN | Fare type flag |
-| `is_refundable` | BOOLEAN | Refund policy |
-| `is_non_stop` | BOOLEAN | Direct flight flag |
+Central fact table containing all flight pricing transactions. Joins dimension tables via foreign keys (`route_key`, `date_key`, `airline_key`, `origin_airport_key`, `dest_airport_key`) to enable multi-dimensional analysis. Contains pricing metrics (fares, taxes, fare_per_mile), inventory data (seats_remaining), booking context (days_until_flight), and flight characteristics (duration, segments, cabin class, refund policy).
 
 #### ml_flight_pricing (ML Feature Table)
-Denormalized table optimized for machine learning (82M+ rows):
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `total_fare` | DECIMAL | **Target variable** |
-| `fare_basis_code` | VARCHAR | Fare class code |
-| `days_until_flight` | INTEGER | Booking lead time |
-| `seats_remaining` | INTEGER | Available seats |
-| `total_travel_distance` | DECIMAL | Flight distance |
-| `travel_duration_minutes` | INTEGER | Flight duration |
-| `num_segments` | INTEGER | Number of connections |
-| `airline_code` | VARCHAR | Carrier code |
-| `origin_city` | VARCHAR | Departure city (from dim_airports) |
-| `dest_city` | VARCHAR | Arrival city (from dim_airports) |
-| `flight_date_key` | INTEGER | Date key |
-| `flight_year` | INTEGER | Year of flight |
-| `flight_month` | INTEGER | Month of flight |
-| `flight_day_of_week` | INTEGER | Day of week (0=Sun) |
-| `is_weekend` | INTEGER | Weekend flag (0/1) |
-| `is_holiday` | INTEGER | Holiday flag (0/1) |
-| `is_basic_economy` | INTEGER | Basic economy flag (0/1) |
-| `is_non_stop` | INTEGER | Direct flight flag (0/1) |
-| `is_refundable` | INTEGER | Refundable flag (0/1) |
+Denormalized, ML-ready table with 82M+ rows. Flattens the star schema into a single wide table optimized for model training. Includes the target variable (`total_fare`), numeric features (distance, duration, days_until_flight, seats_remaining), categorical features (airline, origin/destination cities), and temporal features (year, month, day_of_week, is_weekend, is_holiday). Boolean flags converted to integers (0/1) for ML compatibility.
 
 ---
 
