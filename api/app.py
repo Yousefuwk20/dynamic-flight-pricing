@@ -1,6 +1,6 @@
 """
 FastAPI backend for Flight Pricing System (XGBoost JSON)
-Serves predictions via REST API - Updated for 23 features
+Serves predictions via REST API
 """
 
 from fastapi import FastAPI, HTTPException
@@ -16,7 +16,6 @@ from pricing_system import (
     predict_price
 )
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Flight Pricing API",
     description="AI-Powered Dynamic Flight Price Prediction",
@@ -57,8 +56,7 @@ class FlightRequest(BaseModel):
     isRefundable: bool = Field(False, description="Is ticket refundable")
     isHoliday: bool = Field(False, description="Is holiday period")
     
-    fareBasisCode: str = Field("YLNNR", description="Fare basis code for parsing fare attributes")
-    fareBasisCode: Optional[str] = Field("Y14", description="Fare basis code")
+    fareBasisCode: Optional[str] = Field("Y14", description="Fare basis code for parsing fare attributes")
     
     cabinCategory: Optional[int] = Field(None, description="Cabin category (1-5, 5=First)")
     passengerType: Optional[int] = Field(None, description="Passenger type (0=Adult, 1=Child, 2=Infant)")

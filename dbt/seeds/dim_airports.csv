@@ -1,4 +1,4 @@
-code,name,City,State
+code,name,city,state
 ATL,Atlanta International Airport,Atlanta,GA
 DFW,Dallas/Fort Worth International Airport,Dallas,TX
 JFK,John F. Kennedy International Airport,New York,NY
@@ -15,3 +15,9 @@ PHL,Philadelphia International Airport,Philadelphia,PA
 LGA,LaGuardia Airport,New York,NY
 IAD,Washington Dulles International Airport,Washington,DC
 OAK,Oakland International Airport,Oakland,CA
+SEA,Seattle-Tacoma International Airport,Seattle,WA
+PHX,Phoenix Sky Harbor International Airport,Phoenix,AZ
+IAH,George Bush Intercontinental Airport,Houston,TX
+LAS,Harry Reid International Airport,Las Vegas,NV
+MCO,Orlando International Airport,Orlando,FL
+MSP,Minneapolis-Saint Paul International Airport,Minneapolis,MN

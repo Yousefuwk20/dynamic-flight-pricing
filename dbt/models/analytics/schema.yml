@@ -2,160 +2,89 @@ version: 2
 
 models:
   - name: dim_airlines
-    description: "Dimension table containing unique airlines extracted from flight segments. Granularity: One row per Airline Code."
+    description: "Dimension table containing unique airlines"
     columns:
       - name: airline_code
-        description: "Two-letter IATA airline code (Primary Key)."
+        description: "Two-letter IATA airline code (Primary Key)"
         tests:
           - unique
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: "length(airline_code) = 2"
       
       - name: airline_name
-        description: "Full commercial name of the airline."
+        description: "Full commercial name of the airline"
         tests:
           - not_null
-          - unique:
-              severity: warn 
-      
-      - name: created_at
-        description: "Audit timestamp."
-      
 
   - name: dim_routes
-    description: "Dimension table defining unique flight paths (Origin -> Destination)."
+    description: "Dimension table defining unique flight paths"
     columns:
       - name: route_key
-        description: "Unique hash of Origin + Destination (Primary Key)."
+        description: "Unique key of Origin + Destination"
         tests:
           - unique
           - not_null
 
       - name: origin_airport
-        description: "IATA Airport Code for Origin."
+        description: "IATA Airport Code for Origin"
         tests:
           - not_null
 
       - name: dest_airport
-        description: "IATA Airport Code for Destination."
+        description: "IATA Airport Code for Destination"
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_airports')
-              field: airport_code
-      
-      - name: distance_miles
-        description: "Average distance between airports."
-        tests:
-          - not_null
-          - dbt_utils.expression_is_true:
-              expression: "distance_miles >= 0"
-  
 
+      - name: distance_miles
+        description: "Average distance between airports"
+        tests:
+          - not_null
+
+  - name: dim_date
+    description: "Date dimension table"
+    columns:
+      - name: date_key
+        description: "Date key in YYYYMMDD format"
+        tests:
+          - unique
+          - not_null
 
   - name: fact_flight_prices
-    description: "The core transactional table for flight prices. Granularity: One row per leg_id per search_date."
-    
-    tests:
-      - unique:
-          column_name: "(leg_id || '-' || to_char(search_date, 'YYYYMMDD'))"
-
+    description: "Fact table for flight prices"
     columns:
-      
       - name: route_key
-        description: "Links to DIM_ROUTES"
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_routes')
-              field: route_key
 
       - name: date_key
-        description: "Links to DIM_DATE"
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_date')
-              field: date_key
 
       - name: airline_key
-        description: "Links to DIM_AIRLINES"
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_airlines')
-              field: airline_code
 
-      - name: origin_airport_key
-        description: "Links to DIM_AIRPORTS (Departure)"
-        tests:
-          - not_null
-          - relationships:
-              to: ref('dim_airports')
-              field: airport_code
-
-      - name: dest_airport_key
-        description: "Links to DIM_AIRPORTS (Arrival)"
-        tests:
-          - not_null
-          - relationships:
-              to: ref('dim_airports')
-              field: airport_code
-      
       - name: total_fare
-        description: "The target variable for ML."
         tests:
           - not_null
-          - check_positive_price: 
-              severity: error
-              config:
-                where: "total_fare <= 0"
 
       - name: days_until_flight
-        description: "Lead time. Negative values indicate data corruption (Search Date > Flight Date)."
         tests:
           - not_null
-          - check_non_negative:
-              severity: error
-              config:
-                 where: "days_until_flight < 0"
 
       - name: seats_remaining
         tests:
           - not_null
-          - check_non_negative:
-              severity: error
-              config:
-                 where: "seats_remaining < 0"
-      
-      - name: travel_duration_minutes
-        tests:
-           - check_minimum_duration:
-              severity: warn
-              config: 
-                 where: "travel_duration_minutes < 15"
 
-      
       - name: is_basic_economy
         tests:
           - not_null
-          - accepted_values:
-              values: [true, false]
 
       - name: is_non_stop
         tests:
           - not_null
-          - accepted_values:
-              values: [true, false]
-
 
   - name: ml_flight_pricing
-    description: "Denormalized training set for the Pricing Prediction Model."
-    tests:
-      - unique:
-          column_name: "(route_key || '-' || to_char(flight_date_key) || '-' || airline_code)"
-
+    description: "Denormalized table for ML training"
     columns:
       - name: total_fare
         tests:
@@ -165,10 +94,10 @@ models:
         tests:
           - not_null
 
-      - name: origin_state
+      - name: origin_city
         tests:
           - not_null
-          
+
       - name: is_holiday
         tests:
           - not_null

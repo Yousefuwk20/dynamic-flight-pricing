@@ -5,7 +5,7 @@
 WITH date_spine AS (
     SELECT 
         DATEADD(day, SEQ4(), '2022-01-01') AS date_day
-    FROM TABLE(GENERATOR(ROWCOUNT => 1460))
+    FROM TABLE(GENERATOR(ROWCOUNT => 1826))
 ),
 
 enriched_dates AS (
@@ -43,4 +43,4 @@ enriched_dates AS (
 )
 
 SELECT * FROM enriched_dates
-WHERE date_day <= '2023-01-01' 
+WHERE date_day <= '2027-01-01' 

@@ -10,61 +10,61 @@
 with source as (
     select * from {{ source('raw', 'flights') }}
     {% if is_incremental() %}
-    where "searchDate" >= (select max(search_date) from {{ this }})
+    where SEARCHDATE >= (select max(search_date) from {{ this }})
     {% endif %}
 ),
 
 parsed as (
     select
         -- Primary Key
-        "legId" as leg_id,
+        LEGID as leg_id,
         
         -- Dates (Type Casting)
-        to_date("searchDate") as search_date,
-        to_date("flightDate") as flight_date,
+        to_date(SEARCHDATE) as search_date,
+        to_date(FLIGHTDATE) as flight_date,
         
         -- Airport Information
-        upper(trim("startingAirport")) as starting_airport,
-        upper(trim("destinationAirport")) as destination_airport,
+        upper(trim(STARTINGAIRPORT)) as starting_airport,
+        upper(trim(DESTINATIONAIRPORT)) as destination_airport,
         
         -- Flight Characteristics (Booleans)
-        coalesce("isBasicEconomy", false) as is_basic_economy,
-        coalesce("isRefundable", false) as is_refundable,
-        coalesce("isNonStop", false) as is_non_stop,
+        coalesce(ISBASICECONOMY, false) as is_basic_economy,
+        coalesce(ISREFUNDABLE, false) as is_refundable,
+        coalesce(ISNONSTOP, false) as is_non_stop,
         
         -- Pricing (Type Casting)
-        cast("baseFare" as decimal(10,2)) as base_fare,
-        cast("totalFare" as decimal(10,2)) as total_fare,
+        cast(BASEFARE as decimal(10,2)) as base_fare,
+        cast(TOTALFARE as decimal(10,2)) as total_fare,
         
         -- Inventory & Distance
-        cast("seatsRemaining" as integer) as seats_remaining,
-        cast("totalTravelDistance" as decimal(10,2)) as total_travel_distance,
-        cast("elapsedDays" as integer) as elapsed_days,
+        cast(SEATSREMAINING as integer) as seats_remaining,
+        cast(TOTALTRAVELDISTANCE as decimal(10,2)) as total_travel_distance,
+        cast(ELAPSEDDAYS as integer) as elapsed_days,
         
         -- Duration Parsing
         case 
-            when "travelDuration" like 'PT%H%M'
-            then cast(regexp_substr("travelDuration", '[0-9]+', 1, 1) as integer) * 60 
-                 + cast(regexp_substr("travelDuration", '[0-9]+', 1, 2) as integer)
+            when TRAVELDURATION like 'PT%H%M'
+            then cast(regexp_substr(TRAVELDURATION, '[0-9]+', 1, 1) as integer) * 60 
+                 + cast(regexp_substr(TRAVELDURATION, '[0-9]+', 1, 2) as integer)
             else null
         end as travel_duration_minutes,
         
         -- Segment Data
-        "segmentsDepartureTimeEpochSeconds" as segments_departure_epoch,
-        "segmentsDepartureTimeRaw" as segments_departure_raw,
-        "segmentsArrivalTimeEpochSeconds" as segments_arrival_epoch,
-        "segmentsArrivalTimeRaw" as segments_arrival_raw,
-        "segmentsArrivalAirportCode" as segments_arrival_airports,
-        "segmentsDepartureAirportCode" as segments_departure_airports,
-        "segmentsAirlineName" as segments_airline_names,
-        "segmentsAirlineCode" as segments_airline_codes,
-        "segmentsEquipmentDescription" as segments_equipment,
-        "segmentsDurationInSeconds" as segments_duration_seconds,
-        "segmentsDistance" as segments_distances,
-        "segmentsCabinCode" as segments_cabin_codes,
+        SEGMENTSDEPARTURETIMEEPOCHSECONDS as segments_departure_epoch,
+        SEGMENTSDEPARTURETIMERAW as segments_departure_raw,
+        SEGMENTSARRIVALTIMEEPOCHSECONDS as segments_arrival_epoch,
+        SEGMENTSARRIVALTIMERAW as segments_arrival_raw,
+        SEGMENTSARRIVALAIRPORTCODE as segments_arrival_airports,
+        SEGMENTSDEPARTUREAIRPORTCODE as segments_departure_airports,
+        SEGMENTSAIRLINENAME as segments_airline_names,
+        SEGMENTSAIRLINECODE as segments_airline_codes,
+        SEGMENTSEQUIPMENTDESCRIPTION as segments_equipment,
+        SEGMENTSDURATIONINSECONDS as segments_duration_seconds,
+        SEGMENTSDISTANCE as segments_distances,
+        SEGMENTSCABINCODE as segments_cabin_codes,
         
         -- Fare Basis Code
-        "fareBasisCode" as fare_basis_code,
+        FAREBASISCODE as fare_basis_code,
         
         -- Metadata
         current_timestamp() as loaded_at

@@ -1,0 +1,16 @@
+# dbt profiles for Airflow container
+# Uses environment variables for credentials
+
+stage_mart:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'FLIGHT_PRICING') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'FLIGHT_WH') }}"
+      schema: staging
+      threads: 4

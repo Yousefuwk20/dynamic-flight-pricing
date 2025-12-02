@@ -134,7 +134,7 @@ htmlcov/
 logs/
 
 # =============================================================================
-# Large Model Files (exceeds GitHub 100MB limit)
+# Large Model Files 
 # =============================================================================
 model/flight_pricing_model.json
 api/flight_pricing_model.json

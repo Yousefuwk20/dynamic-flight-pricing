@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pickle
 import xgboost as xgb
@@ -57,7 +58,6 @@ def parse_fare_code(fare_code: str, flight_data: dict = None) -> dict:
             'is_weekend_fare_proxy': 0
         }
     
-    import re
     fc = fare_code.upper()
     
     # Cabin mapping (ordinal)
@@ -236,9 +236,7 @@ def calculate_inventory_factor(context: Dict) -> float:
     """
     seats_remaining = context.get('seats_remaining', 50)
     total_seats = context.get('total_seats', 180)
-    days_until_flight = context.get('days_until_flight', 30)
     
-    fill_rate = (total_seats - seats_remaining) / total_seats if total_seats > 0 else 0
     seats_remaining_pct = (seats_remaining / total_seats) * 100 if total_seats > 0 else 50
     
     adjustment = 0.0

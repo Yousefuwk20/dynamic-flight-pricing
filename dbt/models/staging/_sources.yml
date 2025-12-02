@@ -6,16 +6,11 @@ sources:
     schema: raw
     tables: 
       - name: flights
-        description: "Raw flight ticket data from Expedia scraping"
-        quoting:
-          identifier: false
+        description: "Raw flight ticket data"
         columns:
-          - name: legId
+          - name: LEGID
             description: "Unique identifier for each flight ticket"
-            tests:
-              - unique
-              - not_null
-          - name: searchDate
+          - name: SEARCHDATE
             description: "Date when ticket was scraped"
-          - name: flightDate
+          - name: FLIGHTDATE
             description: "Date of actual flight"

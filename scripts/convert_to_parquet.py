@@ -3,16 +3,13 @@ CSV to Parquet Converter
 Converts large CSV files to Parquet format with Snappy compression.
 
 Usage:
-    python convert_to_parquet.py <csv_file> <parquet_file>
-    python convert_to_parquet.py  # Uses default paths from current directory
+    python convert_to_parquet.py 
 """
 
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm import tqdm
-import os
-import sys
 
 
 def convert_csv_to_parquet(csv_file: str, parquet_file: str, chunk_size: int = 500_000):
@@ -39,15 +36,6 @@ def convert_csv_to_parquet(csv_file: str, parquet_file: str, chunk_size: int = 5
     return total_rows
 
 
-if __name__ == "__main__":
-    if len(sys.argv) >= 3:
-        csv_file = sys.argv[1]
-        parquet_file = sys.argv[2]
-    else:
-        csv_file = "data/itineraries.csv"
-        parquet_file = "data/itineraries.parquet"
-    
-    if not os.path.exists(csv_file):
-        sys.exit(1)
-    
-    convert_csv_to_parquet(csv_file, parquet_file)
+csv_file = "data/itineraries.csv"
+parquet_file = "data/itineraries.parquet"
+convert_csv_to_parquet(csv_file, parquet_file)
