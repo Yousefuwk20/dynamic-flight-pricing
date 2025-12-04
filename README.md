@@ -20,9 +20,7 @@ An end-to-end **Data Engineering** and **Machine Learning** solution for airline
 - [Data Pipeline](#data-pipeline)
 - [Quick Start](#quick-start)
 - [Airflow Orchestration](#airflow-orchestration)
-- [API Service](#api-service)
 - [Model Performance](#model-performance)
-- [Documentation](#documentation)
 
 ---
 
